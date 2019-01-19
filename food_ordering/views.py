@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from food_ordering.services import TaskService
 
 
 def test(request):
@@ -43,7 +44,12 @@ def task(req, task_id=None):
 
 
 def task_manager_view(req, task_id):
-    pass
+    is_saved = False
+    if req.method == 'POST' and task_id is None:
+        # save form data
+        task_service = TaskService(req)
+        is_saved = task_service.save_task()
+    return render(req, 'manager/home.html', {'is_saved': is_saved})
 
 
 def task_agent_view(req, task_id):
