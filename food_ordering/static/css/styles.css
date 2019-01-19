@@ -1,7 +1,9 @@
 body {
-    background-color : #bbb;
+    background-color : #aaa;
 }
 
 .container{
-min-height : 700px;
+    min-height : 550px;
+}
+.template-container{
 }

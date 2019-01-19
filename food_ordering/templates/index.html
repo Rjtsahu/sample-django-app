@@ -26,6 +26,10 @@
         </span>
         </center>
     </div>
+    <div class="template-container">
+        {% block content %}{% endblock %}
+    </div>
+    {{ user.user_type }}
 </div>
 <script src="{% static 'js/materialize.js' %}"></script>
 </body>
