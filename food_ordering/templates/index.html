@@ -21,15 +21,18 @@
 <div class="container teal lighten-1">
     <div class="card-panel blue lighten-4">
         <center>
-        <span>
-        Login to Proceed.
-        </span>
+            {% block top_title %}
+            <span>
+        Welcome {{user | default:'user'}}
+            </span>
+            {% endblock %}
         </center>
     </div>
     <div class="template-container">
-        {% block content %}{% endblock %}
+        {% block content %}
+
+        {% endblock %}
     </div>
-    {{ user.user_type }}
 </div>
 <script src="{% static 'js/materialize.js' %}"></script>
 </body>
