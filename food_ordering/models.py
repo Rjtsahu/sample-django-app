@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from food_ordering.utils import get_option_value
 
 # Create your models here.
 
@@ -28,6 +29,9 @@ class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     user_type = models.IntegerField(choices=USER_TYPE, default=1)
+
+    def get_user_type(self):
+        return get_option_value(USER_TYPE, self.user_type)
 
 
 class Task(models.Model):

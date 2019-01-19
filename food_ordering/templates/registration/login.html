@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+
+{% block top_title %}
+        <span>
+    Manager and Delivery boy Login page.
+         </span>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+
+    <div class="col s6 offset-s3 cyan lighten-4">
+        <span>Login Here</span>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="waves-effect waves-light btn">Login</button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
