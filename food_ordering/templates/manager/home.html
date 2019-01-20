@@ -61,9 +61,9 @@
                         <td> {{task.get_current_task_state_type}}</td>
                         <td>
                             {% if task.get_current_task_state_type == 'CANCELLED' or task.get_current_task_state_type == 'ACCEPTED' %}
-                            <button class="btn-small disabled"> Delete</button>
+                            <button class="btn-small disabled"> Cancel</button>
                             {% else %}
-                            <button class="btn-small waves-light"> Delete</button>
+                            <button class="btn-small waves-light" onclick="cancelTask({{task.id}})"> Cancel</button>
                             {% endif %}
                         </td>
                     </tr>
@@ -82,7 +82,32 @@
     var instances = M.FormSelect.init(elems);
   });
 
+    // handle button click of cancel button
+    function cancelTask(taskId){
+       // make HTTP DELETE call on success refresh page to reload page
+       // as we want to minimise js logics
+        console.log('cancel called for taskId',taskId);
+        console.log('cookie ',document.cookie)
+       let csrfMiddlewareToken = document.getElementsByName('csrfmiddlewaretoken')[0].defaultValue;
 
+       fetch('/task/' + taskId, {
+       method:'DELETE',
+       headers: {
+            "Cookie": document.cookie,
+            "X-CSRFToken":csrfMiddlewareToken
+        }
+       }).then(res=>{
+        console.log('res',res);
+        if(res.status == 200){
+         M.toast({html: 'Task cancelled'});
+         setTimeout(function(){
+            location.reload();
+         },500)
+        }else{
+          M.toast({html: 'Task cancellation failed'});
+        }
+       });
+    }
 
 </script>
 {% endblock %}
