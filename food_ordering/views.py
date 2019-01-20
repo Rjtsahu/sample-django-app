@@ -67,5 +67,11 @@ def task_manager_view(req, task_id):
         return redirect('/')
 
 
-def task_agent_view(req, task_id):
-    pass
+def task_agent_view(req):
+    if req.method == 'GET':
+        delivery_agent_tasks = Task.objects.filter(assigned_to=req.user). \
+            values_list('task', flat=True)
+        context = {'task': delivery_agent_tasks}
+        return render(req, 'agent/task.html',context)
+    else:
+        return redirect('/')
