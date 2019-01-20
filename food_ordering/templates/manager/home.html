@@ -5,45 +5,73 @@
 
     <div class="col s12 m6 l6 ">
         <div class="card-panel pink lighten-4">
-        <div class="top-title"> add new task.</div>
+            <div class="top-title"> add new task.</div>
 
-        <form action="/" method="post">
-            {% csrf_token %}
-            <div class="row">
-                <div class="input-field s12">
-                    <input type="text" name="title" id="title"/>
-                    <label for="title">Task Title</label>
+            <form action="/task/" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="input-field s12">
+                        <input type="text" name="title" id="title"/>
+                        <label for="title">Task Title</label>
+                    </div>
+
+                    <div class="input-field s12">
+                        <textarea id="detail" name="detail" class="materialize-textarea"></textarea>
+                        <label for="detail">Task Description</label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <select name="priority" id="priority">
+                            <option value="" disabled selected>Choose your option</option>
+                            <option value="1">High</option>
+                            <option value="2">Medium</option>
+                            <option value="3">Low</option>
+                        </select>
+                        <label>Priority</label>
+                    </div>
+
+
+                    <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+                        <i class="material-icons right">add</i>
+                    </button>
+
                 </div>
+            </form>
 
-                <div class="input-field s12">
-                    <textarea id="detail" name="detail" class="materialize-textarea"></textarea>
-                    <label for="detail">Task Description</label>
-                </div>
-
-                <div class="input-field col s12">
-                    <select>
-                        <option value="" disabled selected name="priority" id="priority">Choose your option</option>
-                        <option value="1">High</option>
-                        <option value="2">Medium</option>
-                        <option value="3">Low</option>
-                    </select>
-                    <label>Priority</label>
-                </div>
-
-
-                <button class="btn waves-effect waves-light" type="submit" name="action">Submit
-                    <i class="material-icons right">add</i>
-                </button>
-
-            </div>
-        </form>
-
+        </div>
     </div>
-    </div>
-    <div class="col s12 m6 l6" >
-          <div class="card-panel white" style="min-height:300px;" >
+    <div class="col s12 m6 l6">
+        <div class="card-panel white" style="min-height:300px;">
             <div class="top-title"> view created tasks.</div>
-          </div>
+            <div class="task-list">
+                <table class="highlight">
+                    <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Priority</th>
+                        <th>Current State</th>
+                        <th>Cancel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td> <a href="/task/{{task.id}}" style="color:black"> {{task.title}} </a></td>
+                        <td> {{task.get_priotity_type}}</td>
+                        <td> {{task.get_current_task_state_type}}</td>
+                        <td>
+                            {% if task.get_current_task_state_type == 'CANCELLED' or task.get_current_task_state_type == 'ACCEPTED' %}
+                            <button class="btn-small disabled"> Delete</button>
+                            {% else %}
+                            <button class="btn-small waves-light"> Delete</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -53,6 +81,7 @@
     var elems = document.querySelectorAll('select');
     var instances = M.FormSelect.init(elems);
   });
+
 
 
 </script>

@@ -2,6 +2,7 @@
 A file to handle business logic associated to a view
 """
 from food_ordering.models import Task, TaskTransaction
+from datetime import datetime
 
 
 class TaskService(object):
@@ -15,11 +16,13 @@ class TaskService(object):
         task_obj.description = data['description']
         task_obj.priority = data['priority']
         task_obj.created_by = self.request.user.id
+        task_obj.last_modified_by = self.request.user.id
+        task_obj.last_updated_at = datetime.utcnow()
         task_obj.save()
 
         task_trans_obj = TaskTransaction()
-        task_trans_obj.task = task_obj.id
-        task_trans_obj.updated_by = self.request.user.id
+        task_trans_obj.task = task_obj
+        task_trans_obj.updated_by = self.request.user
         task_trans_obj.save()
 
     def save_task(self):
@@ -32,7 +35,7 @@ class TaskService(object):
             return False
         form_data = self.request.POST
 
-        data = {'title': form_data.get('title', ''), 'detail': form_data.get('description', ''),
+        data = {'title': form_data.get('title', ''), 'description': form_data.get('detail', ''),
                 'priority': form_data.get('priority', '')}
 
         if data['title'] == '':

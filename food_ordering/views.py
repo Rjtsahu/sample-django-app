@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from food_ordering.services import TaskService
+from food_ordering.models import Task, CustomUser, TaskTransaction
 
 
 def test(request):
@@ -20,8 +21,9 @@ def home(req):
 
 
 def manager_home_view(req):
-    context = {'user': req.user}
-    # TODO: add logic to send list of tasks
+    tasks = Task.objects.all()
+
+    context = {'user': req.user, 'tasks': tasks}
     return render(req, 'manager/home.html', context)
 
 
@@ -34,9 +36,9 @@ def delivery_agent_home_view(req):
 def task(req, task_id=None):
     if req.user.is_authenticated:
         if req.user.get_user_type() == 'Manager':
-            task_manager_view(req, task_id)
+            return task_manager_view(req, task_id)
         elif req.user.get_user_type() == 'DeliveryAgent':
-            task_agent_view(req, task_id)
+            return task_agent_view(req, task_id)
         else:
             return redirect('/accounts/login')
     else:
@@ -44,12 +46,21 @@ def task(req, task_id=None):
 
 
 def task_manager_view(req, task_id):
-    is_saved = False
     if req.method == 'POST' and task_id is None:
         # save form data
         task_service = TaskService(req)
-        is_saved = task_service.save_task()
-    return render(req, 'manager/home.html', {'is_saved': is_saved})
+        task_service.save_task()
+        return redirect('/')
+    elif req.method == 'GET' and task_id is not None:
+        # show task transition page
+        task = get_object_or_404(Task, pk=task_id)
+        creator = CustomUser.objects.get(pk=task.created_by)
+        transaction = TaskTransaction.objects.filter(task_id=task_id).order_by('-updated_at')
+
+        context = {'task': task, 'creator_username': creator.username, 'transaction': transaction}
+        return render(req, 'manager/task.html', context)
+    else:
+        return redirect('/')
 
 
 def task_agent_view(req, task_id):
