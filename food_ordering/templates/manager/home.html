@@ -7,7 +7,7 @@
         <div class="card-panel pink lighten-4">
         <div class="top-title"> add new task.</div>
 
-        <form action="/" method="post">
+        <form action="/task/" method="post">
             {% csrf_token %}
             <div class="row">
                 <div class="input-field s12">
@@ -21,8 +21,8 @@
                 </div>
 
                 <div class="input-field col s12">
-                    <select>
-                        <option value="" disabled selected name="priority" id="priority">Choose your option</option>
+                    <select name="priority" id="priority">
+                        <option value="" disabled selected>Choose your option</option>
                         <option value="1">High</option>
                         <option value="2">Medium</option>
                         <option value="3">Low</option>

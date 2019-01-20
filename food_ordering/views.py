@@ -34,9 +34,9 @@ def delivery_agent_home_view(req):
 def task(req, task_id=None):
     if req.user.is_authenticated:
         if req.user.get_user_type() == 'Manager':
-            task_manager_view(req, task_id)
+            return task_manager_view(req, task_id)
         elif req.user.get_user_type() == 'DeliveryAgent':
-            task_agent_view(req, task_id)
+            return task_agent_view(req, task_id)
         else:
             return redirect('/accounts/login')
     else:
@@ -44,12 +44,11 @@ def task(req, task_id=None):
 
 
 def task_manager_view(req, task_id):
-    is_saved = False
     if req.method == 'POST' and task_id is None:
         # save form data
         task_service = TaskService(req)
-        is_saved = task_service.save_task()
-    return render(req, 'manager/home.html', {'is_saved': is_saved})
+        task_service.save_task()
+    return redirect('/')
 
 
 def task_agent_view(req, task_id):
