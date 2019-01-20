@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from food_ordering.services import TaskService
+from food_ordering.models import Task, CustomUser, TaskTransaction
 
 
 def test(request):
@@ -20,8 +21,9 @@ def home(req):
 
 
 def manager_home_view(req):
-    context = {'user': req.user}
-    # TODO: add logic to send list of tasks
+    tasks = Task.objects.all()
+
+    context = {'user': req.user, 'tasks': tasks}
     return render(req, 'manager/home.html', context)
 
 
@@ -48,7 +50,17 @@ def task_manager_view(req, task_id):
         # save form data
         task_service = TaskService(req)
         task_service.save_task()
-    return redirect('/')
+        return redirect('/')
+    elif req.method == 'GET' and task_id is not None:
+        # show task transition page
+        task = get_object_or_404(Task, pk=task_id)
+        creator = CustomUser.objects.get(pk=task.created_by)
+        transaction = TaskTransaction.objects.filter(task_id=task_id).order_by('-updated_at')
+
+        context = {'task': task, 'creator_username': creator.username, 'transaction': transaction}
+        return render(req, 'manager/task.html', context)
+    else:
+        return redirect('/')
 
 
 def task_agent_view(req, task_id):

@@ -47,6 +47,12 @@ class Task(models.Model):
     current_task_state = models.IntegerField(
         choices=TASK_STATE, default=1)
 
+    def get_priotity_type(self):
+        return get_option_value(PRIORITY, self.priority)
+
+    def get_current_task_state_type(self):
+        return get_option_value(TASK_STATE, self.current_task_state)
+
 
 class AssignedTask(models.Model):
     id = models.AutoField(primary_key=True)
@@ -64,3 +70,6 @@ class TaskTransaction(models.Model):
     updated_by = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE)
     action_taken = models.IntegerField(choices=TASK_STATE, default=1)
+
+    def get_action_taken_value(self):
+        return get_option_value(TASK_STATE, self.action_taken)

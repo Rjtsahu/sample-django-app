@@ -15,3 +15,10 @@ body {
     text-allign: center;
     background-color : yellow;
 }
+.task-detail-header{
+    padding: 10px;
+    margin-bottom : 10px;
+    background-color: #546e7a;
+    color : white;
+    box-shadow: 1px 1px 5px 1px #6befc4;
+}
