@@ -46,9 +46,10 @@ def task(req, task_id=None):
 
 
 def task_manager_view(req, task_id):
+    task_service = TaskService(req)
+
     if req.method == 'POST' and task_id is None:
         # save form data
-        task_service = TaskService(req)
         task_service.save_task()
         return redirect('/')
     elif req.method == 'GET' and task_id is not None:
@@ -59,9 +60,18 @@ def task_manager_view(req, task_id):
 
         context = {'task': task, 'creator_username': creator.username, 'transaction': transaction}
         return render(req, 'manager/task.html', context)
+    elif req.method == 'DELETE' and task_id is not None:
+        task_service.cancel_task(task_id)
+        return HttpResponse('ok')
     else:
         return redirect('/')
 
 
-def task_agent_view(req, task_id):
-    pass
+def task_agent_view(req):
+    if req.method == 'GET':
+        delivery_agent_tasks = Task.objects.filter(assigned_to=req.user). \
+            values_list('task', flat=True)
+        context = {'task': delivery_agent_tasks}
+        return render(req, 'agent/task.html',context)
+    else:
+        return redirect('/')

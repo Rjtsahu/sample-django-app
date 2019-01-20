@@ -43,3 +43,18 @@ class TaskService(object):
 
         self.__save__(data)
         return True
+
+    def cancel_task(self, task_id):
+        task_cancelled = 5
+        task_obj = Task.objects.get(pk=task_id)
+        task_obj.current_task_state = task_cancelled
+        task_obj.last_updated_at = datetime.utcnow()
+        task_obj.last_modified_by = self.request.user.id
+        task_obj.save()
+
+        task_trans_obj = TaskTransaction()
+        task_trans_obj.task = task_obj
+        task_trans_obj.action_taken = task_cancelled
+        task_trans_obj.updated_by = self.request.user
+        task_trans_obj.updated_at = datetime.utcnow()
+        task_trans_obj.save()

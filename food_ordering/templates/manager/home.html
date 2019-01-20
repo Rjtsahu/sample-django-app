@@ -56,14 +56,14 @@
                     <tbody>
                     {% for task in tasks %}
                     <tr>
-                        <td> <a href="/task/{{task.id}}" style="color:black"> {{task.title}} </a></td>
+                        <td><a href="/task/{{task.id}}" style="color:black"> {{task.title}} </a></td>
                         <td> {{task.get_priotity_type}}</td>
                         <td> {{task.get_current_task_state_type}}</td>
                         <td>
                             {% if task.get_current_task_state_type == 'CANCELLED' or task.get_current_task_state_type == 'ACCEPTED' %}
-                            <button class="btn-small disabled"> Delete</button>
+                            <button class="btn-small disabled"> Cancel</button>
                             {% else %}
-                            <button class="btn-small waves-light"> Delete</button>
+                            <button class="btn-small waves-light" onclick="cancelTask({{task.id}})"> Cancel</button>
                             {% endif %}
                         </td>
                     </tr>
@@ -82,7 +82,6 @@
     var instances = M.FormSelect.init(elems);
   });
 
-
-
 </script>
+<script type="text/javascript" src="/static/js/manager_script.js"></script>
 {% endblock %}
