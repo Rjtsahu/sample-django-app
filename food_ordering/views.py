@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from food_ordering.services import TaskService, AssignedTaskService
 from food_ordering.models import Task, CustomUser, TaskTransaction, AssignedTask
 
-
 def test(request):
     return HttpResponse('Server is Up')
 
@@ -31,7 +30,6 @@ def delivery_agent_home_view(req):
     context = {'user': req.user}
     # TODO: add logic to send list of tasks
     return render(req, 'agent/home.html', context)
-
 
 def task(req, task_id=None):
     if req.user.is_authenticated:

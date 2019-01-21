@@ -67,6 +67,9 @@ let $http = (function() {
         post: async function(url) {
             return await privateMethods.http(url, 'POST');
         },
+        put: async function(url) {
+            return await privateMethods.http(url, 'PUT');
+        },
         delete: async function(url) {
             return await privateMethods.http(url, 'DELETE');
         }
