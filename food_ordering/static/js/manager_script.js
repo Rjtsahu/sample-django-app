@@ -2,7 +2,7 @@
     // handle button click of cancel button
     function cancelTask(taskId){
 
-       $http.Delete('/task/' + taskId).then(result=>{
+       $http.delete('/task/' + taskId).then(result=>{
          M.toast({html: 'Task cancelled'});
 
          setTimeout(function(){
