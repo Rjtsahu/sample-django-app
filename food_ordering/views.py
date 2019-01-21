@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from food_ordering.services import TaskService
-from food_ordering.models import Task, CustomUser, TaskTransaction
+from food_ordering.services import TaskService, AssignedTaskService
+from food_ordering.models import Task, CustomUser, TaskTransaction, AssignedTask
 
 
 def test(request):
@@ -67,11 +67,28 @@ def task_manager_view(req, task_id):
         return redirect('/')
 
 
-def task_agent_view(req):
+def task_agent_view(req, task_id):
+    assigned_task_service = AssignedTaskService(req)
+    task_service = TaskService(req)
+
+    context = {}
     if req.method == 'GET':
-        delivery_agent_tasks = Task.objects.filter(assigned_to=req.user). \
-            values_list('task', flat=True)
-        context = {'task': delivery_agent_tasks}
-        return render(req, 'agent/task.html',context)
+        tasks = assigned_task_service.get_task_list()
+        context['tasks'] = tasks
+        return render(req, 'agent/task.html', context)
+    elif req.method == 'PUT':
+        '''
+        PUT should be used for performing COMPLETE,DELCINE and ACCEPT operations
+        '''
+        action = req.GET['action']
+        if action == 'accepted':
+            task_service.accept_task(task_id)
+        elif action == 'completed':
+            task_service.complete_task(task_id)
+        elif action == 'declined':
+            task_service.decline_task(task_id)
+        else:
+            return HttpResponse('Invalid action name.')
+        return HttpResponse('ok')
     else:
         return redirect('/')

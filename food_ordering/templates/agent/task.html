@@ -1,7 +1,7 @@
 <!--- experimental view-->
 
 <div class="row">
-    <div class="col s12 m8 l8 offset-m2 offset-l2">
+    <div class="col s12 m8 l6 offset-m2 offset-l3">
 
         <div class="card-panel">
 
@@ -9,7 +9,6 @@
                 <thead>
                 <tr>
                     <th>Title</th>
-                    <th>Priority</th>
                     <th>Complete</th>
                     <th>Decline</th>
                 </tr>
@@ -20,9 +19,6 @@
                 <tr>
                     <td>
                         {{task.title}}
-                    </td>
-                    <td>
-                        {{task.get_priority_type}}
                     </td>
                     <td>
                         {% if task.get_current_task_state_type == 'COMPLETED' %}
