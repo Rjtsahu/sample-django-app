@@ -1,11 +1,17 @@
-from django.urls import path,include
-
-from . import views
+from django.urls import path, include
+from django.conf.urls import url
+from food_ordering import views
+from food_ordering.consumers import WsConsumer
 
 urlpatterns = [
-    path('',views.home),
+    path('', views.home),
     path('task/', views.task),
-    path('task/<int:task_id>',views.task),
+    path('task/<int:task_id>', views.task),
     path('test', views.test),
-    path('accounts/',include('django.contrib.auth.urls'))
+    path('accounts/', include('django.contrib.auth.urls'))
+]
+
+
+websocket_urlpatterns = [
+    url(r'ws/$', WsConsumer),
 ]
