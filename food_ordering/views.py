@@ -1,20 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from food_ordering.services import TaskService, AssignedTaskService
 from food_ordering.models import Task, CustomUser, TaskTransaction, AssignedTask
+
+LOGIN_URL = '/accounts/login'
+
 
 def test(request):
     return HttpResponse('Server is Up')
 
 
+@login_required(login_url=LOGIN_URL)
 def home(req):
-    if req.user.is_authenticated:
-        if req.user.get_user_type() == 'Manager':
-            return manager_home_view(req)
-        elif req.user.get_user_type() == 'DeliveryAgent':
-            return delivery_agent_home_view(req)
-        else:
-            return redirect('/accounts/login')
+    if req.user.get_user_type() == 'Manager':
+        return manager_home_view(req)
+    elif req.user.get_user_type() == 'DeliveryAgent':
+        return delivery_agent_home_view(req)
     else:
         return redirect('/accounts/login')
 
@@ -31,14 +33,13 @@ def delivery_agent_home_view(req):
     # TODO: add logic to send list of tasks
     return render(req, 'agent/home.html', context)
 
+
+@login_required(login_url=LOGIN_URL)
 def task(req, task_id=None):
-    if req.user.is_authenticated:
-        if req.user.get_user_type() == 'Manager':
-            return task_manager_view(req, task_id)
-        elif req.user.get_user_type() == 'DeliveryAgent':
-            return task_agent_view(req, task_id)
-        else:
-            return redirect('/accounts/login')
+    if req.user.get_user_type() == 'Manager':
+        return task_manager_view(req, task_id)
+    elif req.user.get_user_type() == 'DeliveryAgent':
+        return task_agent_view(req, task_id)
     else:
         return redirect('/accounts/login')
 
