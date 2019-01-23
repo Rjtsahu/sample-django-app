@@ -3,3 +3,4 @@ pika == 0.13.0
 channels == 2.1.6
 channels_redis == 2.3.3
 pywin32
+django_heroku
