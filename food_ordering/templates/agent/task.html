@@ -2,7 +2,7 @@
 
 <div class="row">
     <div class="col s12 m8 l6 offset-m2 offset-l3">
-
+{% csrf_token %}
         <div class="card-panel">
 
             <table class="highlight">
@@ -21,17 +21,21 @@
                         {{task.title}}
                     </td>
                     <td>
-                        {% if task.get_current_task_state_type == 'COMPLETED' %}
-                        <button class="btn-small disabled"> Complete</button>
+                        {% if task.get_current_task_state_type == 'ACCEPTED' %}
+                        <button class="btn-small waves-light" onclick="completeTaskClicked({{task.id}})" >Complete</button>
                         {% else %}
-                        <button class="btn-small waves-light">Complete</button>
+                            {% if task.get_current_task_state_type == 'COMPLETED' %}
+                            Task Completed
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td>
-                        {% if task.get_current_task_state_type == 'DECLINED' %}
-                        <button class="btn-small disabled"> Decline</button>
+                        {% if task.get_current_task_state_type == 'ACCEPTED' %}
+                        <button class="btn-small waves-light" onclick="declineTaskClicked({{task.id}})">Decline</button>
                         {% else %}
-                        <button class="btn-small waves-light">Decline</button>
+                            {% if task.get_current_task_state_type == 'DECLINED' %}
+                            Task Declined
+                            {% endif %}
                         {% endif %}
                     </td>
                 </tr>

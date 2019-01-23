@@ -1,4 +1,7 @@
 # common helper function
+import os
+
+from django.core.exceptions import ImproperlyConfigured
 
 
 def get_option_value(option_tuple, key):
@@ -12,3 +15,25 @@ def get_option_value(option_tuple, key):
         if type[0] == key:
             return type[1]
     return None
+
+
+"""
+Function: get_env_variable
+CREDITS : https://gist.github.com/pydanny/6094883
+"""
+
+
+def get_env_variable(var_name):
+    """
+    Get environment variable with given key , to be used to fetch
+    sensitive info in production
+    :param var_name: key
+    :return: value for key else raise exception
+    """
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        error_msg = "Set the %s environment variable" % var_name
+        raise ImproperlyConfigured(error_msg)
+
+
