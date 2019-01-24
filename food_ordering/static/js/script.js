@@ -76,3 +76,105 @@ let $http = (function() {
     }
 
 })();
+
+
+let socketUrl = 'ws://'+window.location.host+'/ws/agent'
+
+let ws = new WebSocket(socketUrl);
+
+ws.onopen = function(e){
+    console.log('socket connection is now open');
+}
+
+ws.onclose = function(e){
+    console.log('socket connection is now closed. Reason: ',e);
+}
+
+ws.onmessage =function(e){
+    console.log('socket received message : ',e.data);
+}
+
+function sendMessage = (msg){
+    if (ws && ws.readyState == WebSocket.OPEN){
+        ws.send(msg);
+    }
+}
+
+const WEB_SOCKET_BASE_URL = 'ws://' + window.location.host +'/ws';
+
+let $socket = (function() {
+
+ let connected = false;
+ let ws = null;
+
+ this.connectionState = WebSocket.CLOSED;
+
+ let that = this;
+
+ this.init = function(url, opt) {
+
+  that.url = url;
+  that.option = opt || {};
+
+  // option can have additional settings like
+  // retry limit and retry interval
+
+  return new Promise(function(accept, reject) {
+
+   if (ws && connected === true) {
+    accept('Connection is already established');
+    return;
+   }
+   const _ws = new WebSocket(url);
+   ws = _ws;
+
+   _ws.onopen = function(e) {
+    console.log('connection opened ', e);
+    _ws.onmessage = function(e) {
+     that.onMessage(e);
+    }
+    accept(e);
+    connected = true;
+    that.connectionState = _ws.readystate;
+   }
+
+   _ws.onclose = function(e) {
+    console.log('connection closed ', e);
+    that.onConnectionError(e);
+    reject(e);
+    connected = false;
+    that.connectionState = _ws.readystate;
+   }
+
+   _ws.onerror = function(e) {
+    console.log('connection error ', e);
+    that.onConnectionError(e);
+    reject(e);
+    connected = false;
+    that.connectionState = _ws.readystate;
+   }
+
+
+  });
+ }
+
+
+ this.sendMessage = function(message) {
+  if (ws == null || connected === false) throw ('You must initialize the connection first by calling init().');
+  ws.send(message);
+ }
+
+ this.stop = function() {
+  if (ws) {
+   ws.close();
+  }
+ }
+
+ this.onMessage = function(...args) {};
+ this.onConnectionError = function(e){
+     // attempt reconnect
+     console.log('some error',e)
+ };
+
+ return this;
+})();
