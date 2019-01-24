@@ -13,5 +13,5 @@ urlpatterns = [
 
 
 websocket_urlpatterns = [
-    url(r'ws/$', WsConsumer),
+    url(r'ws/<string:user_type>/$', WsConsumer),
 ]

@@ -40,3 +40,19 @@ function performTaskAction(taskId,action){
 document.addEventListener('DOMContentLoaded', function() {
     populateTaskList();
 });
+
+// code for websocket for realtime communication
+let wsUrl = WEB_SOCKET_BASE_URL + '/agent'
+
+$socket.init(wsUrl).then((event) => {
+ console.log(' event: ', event);
+
+ $socket.sendMessage('message from agent');
+
+}).catch(err => {
+ console.log('error ', err);
+});
+
+$socket.onMessage = function(e) {
+ console.log('inside onMessage client', e)
+}
