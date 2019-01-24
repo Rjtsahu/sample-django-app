@@ -78,28 +78,6 @@ let $http = (function() {
 })();
 
 
-let socketUrl = 'ws://'+window.location.host+'/ws/agent'
-
-let ws = new WebSocket(socketUrl);
-
-ws.onopen = function(e){
-    console.log('socket connection is now open');
-}
-
-ws.onclose = function(e){
-    console.log('socket connection is now closed. Reason: ',e);
-}
-
-ws.onmessage =function(e){
-    console.log('socket received message : ',e.data);
-}
-
-function sendMessage = (msg){
-    if (ws && ws.readyState == WebSocket.OPEN){
-        ws.send(msg);
-    }
-}
-
 const WEB_SOCKET_BASE_URL = 'ws://' + window.location.host +'/ws';
 
 let $socket = (function() {
@@ -111,13 +89,9 @@ let $socket = (function() {
 
  let that = this;
 
- this.init = function(url, opt) {
+ this.init = function(url) {
 
   that.url = url;
-  that.option = opt || {};
-
-  // option can have additional settings like
-  // retry limit and retry interval
 
   return new Promise(function(accept, reject) {
 
@@ -131,7 +105,7 @@ let $socket = (function() {
    _ws.onopen = function(e) {
     console.log('connection opened ', e);
     _ws.onmessage = function(e) {
-     that.onMessage(e);
+     that.onMessage(e.data || {});
     }
     accept(e);
     connected = true;

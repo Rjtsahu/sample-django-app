@@ -3,7 +3,9 @@ A file to handle business logic associated to a view
 """
 from food_ordering.models import Task, TaskTransaction, AssignedTask
 from datetime import datetime
-from food_ordering.constants import TaskStateConstant, TaskPriorityConstant
+from food_ordering.constants import TaskStateConstant
+from django.dispatch import receiver
+from food_ordering.signals import ws_connected, ws_disconnected, ws_message
 
 
 class TaskService(object):
@@ -97,3 +99,24 @@ class AssignedTaskService:
                 tasks.append(assigned_task.task)
 
         return tasks
+
+
+class WebSocketSignalHandlerService(object):
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    @receiver(ws_message)
+    def on_ws_message(sender, **kwargs):
+        print('signal on_ws_message: ', kwargs)
+
+    @staticmethod
+    @receiver(ws_connected)
+    def on_ws_connected(sender, **kwargs):
+        print('signal on_ws_connected, clientId: ', kwargs)
+
+    @staticmethod
+    @receiver(ws_disconnected)
+    def on_ws_disconnected(sender, **kwargs):
+        print('signal on_ws_disconnected, clientId: ',kwargs)
