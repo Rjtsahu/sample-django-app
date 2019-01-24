@@ -15,7 +15,7 @@
     }
 
 // code for webSocket for realtime communication
-let wsUrl = WEB_SOCKET_BASE_URL + '/manager'
+let wsUrl = WEB_SOCKET_BASE_URL + '/manager/'
 
 $socket.init(wsUrl).then((event) => {
  console.log(' event: ', event);

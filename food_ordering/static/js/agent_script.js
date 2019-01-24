@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // code for websocket for realtime communication
-let wsUrl = WEB_SOCKET_BASE_URL + '/agent'
+let wsUrl = WEB_SOCKET_BASE_URL + '/agent/'
 
 $socket.init(wsUrl).then((event) => {
  console.log(' event: ', event);

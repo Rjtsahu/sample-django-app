@@ -89,13 +89,9 @@ let $socket = (function() {
 
  let that = this;
 
- this.init = function(url, opt) {
+ this.init = function(url) {
 
   that.url = url;
-  that.option = opt || {};
-
-  // option can have additional settings like
-  // retry limit and retry interval
 
   return new Promise(function(accept, reject) {
 
@@ -109,7 +105,7 @@ let $socket = (function() {
    _ws.onopen = function(e) {
     console.log('connection opened ', e);
     _ws.onmessage = function(e) {
-     that.onMessage(e);
+     that.onMessage(e.data || {});
     }
     accept(e);
     connected = true;
