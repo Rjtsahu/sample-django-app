@@ -47,7 +47,7 @@ class Task(models.Model):
     current_task_state = models.IntegerField(
         choices=TASK_STATE, default=1)
 
-    def get_priotity_type(self):
+    def get_priority_type(self):
         return get_option_value(PRIORITY, self.priority)
 
     def get_current_task_state_type(self):
@@ -61,6 +61,8 @@ class AssignedTask(models.Model):
     assign_to = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
                                   related_name='DeliveryAgent')
     assign_at = models.DateTimeField(auto_now=True)
+    is_completed = models.BooleanField(default=False)
+    is_declined = models.BooleanField(default=False)
 
 
 class TaskTransaction(models.Model):
