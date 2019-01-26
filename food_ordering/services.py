@@ -6,6 +6,8 @@ from datetime import datetime
 from food_ordering.constants import TaskStateConstant
 from django.dispatch import receiver
 from food_ordering.signals import ws_connected, ws_disconnected, ws_message
+from food_ordering.consumers import WsConsumer
+import json
 
 
 class TaskService(object):
@@ -130,3 +132,33 @@ class WebSocketSignalHandlerService(object):
     @receiver(ws_disconnected)
     def on_ws_disconnected(sender, **kwargs):
         print('signal on_ws_disconnected, clientId: ', kwargs)
+
+
+class NotificationService(object):
+
+    def __init__(self, req):
+        self.request = req
+
+    def notify_task_completed(self, task_id):
+        self._notify_task_state_changed(task_id, 'completed')
+
+    def notify_task_cancelled(self, task_id):
+        self._notify_task_state_changed(task_id, 'cancelled')
+
+    def notify_task_accepted(self, task_id):
+        self._notify_task_state_changed(task_id, 'accepted')
+
+    def notify_task_declined(self, task_id):
+        self._notify_task_state_changed(task_id, 'declined')
+
+    def _notify_task_state_changed(self, task_id, task_state):
+        task = Task.objects.get(pk=task_id)
+        task_state = str(task_state).lower()
+        message = {
+            'event': 'task-{0}'.format(task_state),
+            'data': 'One of task has been {0} .'.format(task_state),
+            'sender': self.request.user.full_name,
+            'taskTitle': task.title
+        }
+
+        WsConsumer.group_send(json.dumps(message), WsConsumer.manager_group)
