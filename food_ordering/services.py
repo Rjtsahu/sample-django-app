@@ -65,6 +65,13 @@ class TaskService(object):
         task_trans_obj.updated_by = self.request.user
         task_trans_obj.save()
 
+    @staticmethod
+    def _update_task_assigned_state(task_id, is_completed=False, is_declined=False):
+        assigned_task_obj = AssignedTask.objects.get(task_id=task_id)
+        assigned_task_obj.is_completed = is_completed
+        assigned_task_obj.is_declined = is_declined
+        assigned_task_obj.save()
+
     def cancel_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.CANCELLED)
 
@@ -73,9 +80,11 @@ class TaskService(object):
 
     def complete_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.COMPLETED)
+        self._update_task_assigned_state(task_id, is_completed=True)
 
     def decline_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.DECLINED)
+        self._update_task_assigned_state(task_id, is_declined=True)
 
 
 class AssignedTaskService:
@@ -91,11 +100,12 @@ class AssignedTaskService:
         Returns list of associated task to a user which are not cancelled or started.
         :return: Task list
         """
-        assigned_tasks = AssignedTask.objects.filter(assign_to=self.request.user)
+        assigned_tasks = AssignedTask.objects.filter(assign_to=self.request.user). \
+            filter(is_completed=False).filter(is_declined=False)
         tasks = []
         for assigned_task in assigned_tasks:
-            current_task_state = assigned_task.task.get_current_task_state_type()
-            if current_task_state not in ['NEW', 'CANCELLED']:
+            current_task_state = assigned_task.task.current_task_state
+            if current_task_state == TaskStateConstant.ACCEPTED:
                 tasks.append(assigned_task.task)
 
         return tasks
@@ -119,4 +129,4 @@ class WebSocketSignalHandlerService(object):
     @staticmethod
     @receiver(ws_disconnected)
     def on_ws_disconnected(sender, **kwargs):
-        print('signal on_ws_disconnected, clientId: ',kwargs)
+        print('signal on_ws_disconnected, clientId: ', kwargs)

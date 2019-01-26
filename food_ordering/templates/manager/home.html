@@ -57,7 +57,7 @@
                     {% for task in tasks %}
                     <tr>
                         <td><a href="/task/{{task.id}}" style="color:black"> {{task.title}} </a></td>
-                        <td> {{task.get_priotity_type}}</td>
+                        <td> {{task.get_priority_type}}</td>
                         <td> {{task.get_current_task_state_type}}</td>
                         <td>
                             {% if task.get_current_task_state_type == 'CANCELLED' or task.get_current_task_state_type == 'ACCEPTED' %}

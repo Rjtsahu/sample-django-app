@@ -1,6 +1,7 @@
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from food_ordering.signals import ws_message, ws_connected, ws_disconnected
+from channels.consumer import get_channel_layer
 
 
 class WsConsumer(WebsocketConsumer):
@@ -22,21 +23,11 @@ class WsConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_name,
-            self.channel_name
-        )
-
-        self.group_send('New client connected clientId:' + self.client_id)
+        WsConsumer.group_send('New client connected clientId:' + self.client_id, self.room_name)
         ws_connected.send(sender=__class__, client_id=self.client_id, group_name=self.room_name)
 
     def disconnect(self, code):
         print('disconnected client : ', self.client_id)
-
-        async_to_sync(self.channel_layer.group_discard)(
-            WsConsumer.broadcast_group,
-            self.channel_name
-        )
 
         async_to_sync(self.channel_layer.group_discard)(
             self.room_name,
@@ -52,8 +43,10 @@ class WsConsumer(WebsocketConsumer):
     def send_message(self, msg):
         self.send(msg)
 
-    def group_send(self, msg, group_name=broadcast_group):
-        async_to_sync(self.channel_layer.group_send)(
+    @staticmethod
+    def group_send(msg, group_name=broadcast_group):
+        layer = get_channel_layer()
+        async_to_sync(layer.group_send)(
             group_name,
             {
                 'type': 'channel_send_handler',
