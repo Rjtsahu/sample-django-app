@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from food_ordering.services import TaskService, AssignedTaskService
-from food_ordering.models import Task, CustomUser, TaskTransaction, AssignedTask
+from food_ordering.services import TaskService, AssignedTaskService, NotificationService
+from food_ordering.models import Task, CustomUser, TaskTransaction
 
 LOGIN_URL = '/accounts/login'
 
@@ -46,6 +46,7 @@ def task(req, task_id=None):
 
 def task_manager_view(req, task_id):
     task_service = TaskService(req)
+    notification_service = NotificationService(req)
 
     if req.method == 'POST' and task_id is None:
         # save form data
@@ -53,14 +54,16 @@ def task_manager_view(req, task_id):
         return redirect('/')
     elif req.method == 'GET' and task_id is not None:
         # show task transition page
-        task = get_object_or_404(Task, pk=task_id)
-        creator = CustomUser.objects.get(pk=task.created_by)
+        task_obj = get_object_or_404(Task, pk=task_id)
+        creator = CustomUser.objects.get(pk=task_obj.created_by)
         transaction = TaskTransaction.objects.filter(task_id=task_id).order_by('-updated_at')
 
-        context = {'task': task, 'creator_username': creator.username, 'transaction': transaction}
+        context = {'task': task_obj, 'creator_username': creator.username, 'transaction': transaction}
         return render(req, 'manager/task.html', context)
     elif req.method == 'DELETE' and task_id is not None:
         task_service.cancel_task(task_id)
+        # send proper notifications
+        notification_service.notify_task_cancelled(task_id)
         return HttpResponse('ok')
     else:
         return redirect('/')
@@ -69,6 +72,7 @@ def task_manager_view(req, task_id):
 def task_agent_view(req, task_id):
     assigned_task_service = AssignedTaskService(req)
     task_service = TaskService(req)
+    notification_service = NotificationService(req)
 
     context = {}
     if req.method == 'GET':
@@ -82,10 +86,13 @@ def task_agent_view(req, task_id):
         action = req.GET['action']
         if action == 'accepted':
             task_service.accept_task(task_id)
+            notification_service.notify_task_accepted(task_id)
         elif action == 'completed':
             task_service.complete_task(task_id)
+            notification_service.notify_task_completed(task_id)
         elif action == 'declined':
             task_service.decline_task(task_id)
+            notification_service.notify_task_declined(task_id)
         else:
             return HttpResponse('Invalid action name.')
         return HttpResponse('ok')
