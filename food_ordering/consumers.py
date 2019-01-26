@@ -57,17 +57,19 @@ class WsConsumer(WebsocketConsumer):
 
     @staticmethod
     def group_send(msg, group_name=broadcast_group):
-        print('group name',group_name)
-        print('message',group_name)
-
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(
-            group_name,
-            {
-                'type': 'channel_send_handler',
-                'message': msg
-            }
-        )
+        print('group name', group_name)
+        print('message', group_name)
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                group_name,
+                {
+                    'type': 'channel_send_handler',
+                    'message': msg
+                }
+            )
+        except Exception as e:
+            print('error while group sending : ', e)
 
     def channel_send_handler(self, event):
         message = event['message']

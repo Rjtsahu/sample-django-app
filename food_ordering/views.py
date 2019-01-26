@@ -22,9 +22,7 @@ def home(req):
 
 
 def manager_home_view(req):
-    tasks = Task.objects.all()
-
-    context = {'user': req.user, 'tasks': tasks}
+    context = {'user': req.user}
     return render(req, 'manager/home.html', context)
 
 
@@ -52,6 +50,9 @@ def task_manager_view(req, task_id):
         # save form data
         task_service.save_task()
         return redirect('/')
+    elif req.method == 'GET' and task_id is None:
+        tasks = Task.objects.all()
+        return render(req, 'manager/task-list.html', {'tasks': tasks})
     elif req.method == 'GET' and task_id is not None:
         # show task transition page
         task_obj = get_object_or_404(Task, pk=task_id)
