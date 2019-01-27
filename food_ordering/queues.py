@@ -46,8 +46,12 @@ class RedisQueue(object):
         :return: popped_item
         """
         popped_item = None
+        redis_current_item = self.get_current_item()
 
-        if current_item != self.get_current_item():
+        if redis_current_item is not None:
+            redis_current_item = redis_current_item.decode('UTF-8')
+
+        if current_item != redis_current_item:
             return popped_item
 
         for _priority in sorted(RedisQueue.priorities):

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.http import HttpResponse
 from food_ordering.services import TaskService, AssignedTaskService, NotificationService
 from food_ordering.models import Task, CustomUser, TaskTransaction
@@ -120,3 +121,8 @@ def latest_agent_task_view(req):
         current_task = RedisQueue.to_py_dict(redis_queue.get_current_item())
         return render(req, 'agent/incoming-task.html', {'incoming_task': current_task})
     return HttpResponse(status=403)
+
+
+def do_logout(req):
+    logout(req)
+    return redirect('accounts/login')
