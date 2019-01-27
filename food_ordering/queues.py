@@ -16,6 +16,7 @@ This class will primarily handle 3 tasks
 class RedisQueue(object):
     queue_prefix = 'task_'
     priorities = [1, 2, 3]  # 1 denoting high and 3 low
+    current_item = 'current_task'
 
     def __init__(self, uri=None):
         self.connection_property = self.get_connection_detail_from_redis_uri(
@@ -29,7 +30,33 @@ class RedisQueue(object):
     def add_item(self, item, priority=1):
         if priority not in RedisQueue.priorities:
             raise ValueError('Invalid value for priority')
-        self.redis_client.lpush('lisrt', item)
+        self.redis_client.lpush(self.get_priority_queue_name(priority), item)
+        if self.redis_client.get(RedisQueue.current_item) is None:
+            self.redis_client.set(RedisQueue.current_item, item)
+
+    def get_current_item(self):
+        item = self.redis_client.get(RedisQueue.current_item)
+        return item
+
+    def pop_priority_item(self, current_item):
+        """
+        This will pop highest priority item and keeps it saved in current_item (redis).
+        :current_item: Popping is valid if only current_item matches with current_item value in redis.
+        :return: popped_item
+        """
+        popped_item = None
+
+        if current_item != self.get_current_item():
+            return popped_item
+
+        for _priority in sorted(RedisQueue.priorities):
+            if self.redis_client.llen(self.get_priority_queue_name(_priority)) == 0:
+                continue
+            else:
+                popped_item = self.redis_client.rpop(self.get_priority_queue_name(_priority))
+                break
+
+        return popped_item
 
     @staticmethod
     def get_connection_detail_from_redis_uri(uri):
