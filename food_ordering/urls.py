@@ -7,7 +7,8 @@ urlpatterns = [
     path('', views.home),
     path('task/', views.task),
     path('task/<int:task_id>', views.task),
-    path('test', views.test),
+    path('task/latest', views.latest_agent_task_view),
+    path('logout', views.do_logout),
     path('accounts/', include('django.contrib.auth.urls'))
 ]
 

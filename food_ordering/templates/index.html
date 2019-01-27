@@ -11,22 +11,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{% static 'css/materialize.css' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-
-
-    <script>
-
-    </script>
 </head>
 <body>
-<div class="container teal lighten-1">
-    <div class="card-panel blue lighten-4">
-        <center>
-            {% block top_title %}
+<div class="container teal lighten-1" style="box-shadow:2px 2px 8px 2px #0c5a53;">
+    <div class="row red accent-2 white-text" style="padding:10px;">
+        {% block top_title %}
+        <div class="col s6 m3 l3 offset-m3 offset-l3">
             <span>
         Welcome {{user | default:'user'}}
             </span>
-            {% endblock %}
-        </center>
+        </div>
+        <div class="col s6 m1 l1 offset-m2 offset-l2">
+            <a href="logout" class="btn-small red darken-3" style="color:white;">Logout</a>
+        </div>
+        {% endblock %}
     </div>
     <div class="template-container">
         {% block content %}

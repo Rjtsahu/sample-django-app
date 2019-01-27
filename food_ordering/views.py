@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.http import HttpResponse
 from food_ordering.services import TaskService, AssignedTaskService, NotificationService
 from food_ordering.models import Task, CustomUser, TaskTransaction
+from food_ordering.queues import RedisQueue
 
 LOGIN_URL = '/accounts/login'
 
@@ -74,11 +76,14 @@ def task_agent_view(req, task_id):
     assigned_task_service = AssignedTaskService(req)
     task_service = TaskService(req)
     notification_service = NotificationService(req)
-
+    redis_queue = RedisQueue()
     context = {}
+
     if req.method == 'GET':
+
         tasks = assigned_task_service.get_task_list()
         context['tasks'] = tasks
+
         return render(req, 'agent/task.html', context)
     elif req.method == 'PUT':
         '''
@@ -86,16 +91,38 @@ def task_agent_view(req, task_id):
         '''
         action = req.GET['action']
         if action == 'accepted':
-            task_service.accept_task(task_id)
-            notification_service.notify_task_accepted(task_id)
+
+            task_obj = Task.objects.get(pk=task_id)
+            if redis_queue.pop_priority_item(RedisQueue.to_json_str(task_obj)) is not None:
+                task_service.accept_task(task_id)
+                notification_service.notify_task_accepted(task_id)
+
         elif action == 'completed':
+
             task_service.complete_task(task_id)
             notification_service.notify_task_completed(task_id)
+
         elif action == 'declined':
+
             task_service.decline_task(task_id)
             notification_service.notify_task_declined(task_id)
+
         else:
             return HttpResponse('Invalid action name.')
         return HttpResponse('ok')
     else:
         return redirect('/')
+
+
+@login_required(login_url=LOGIN_URL)
+def latest_agent_task_view(req):
+    if req.user.get_user_type() == 'DeliveryAgent':
+        redis_queue = RedisQueue()
+        current_task = RedisQueue.to_py_dict(redis_queue.get_current_item())
+        return render(req, 'agent/incoming-task.html', {'incoming_task': current_task})
+    return HttpResponse(status=403)
+
+
+def do_logout(req):
+    logout(req)
+    return redirect('accounts/login')
