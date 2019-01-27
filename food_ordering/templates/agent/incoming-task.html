@@ -6,9 +6,14 @@
                     {% else %}
                     Incoming request
                     <div class="card-panel purple darken-2">
-                        <span id="requested-task-title">
+                        <span id="requested-task-title" style="font-size:16px;">
                             {{ incoming_task.title  }}
                         </span>
+                        <br/>
+                        <span id="requested-task-detail" style="font-size:12px;">
+                            {{ incoming_task.detail  }}
+                        </span>
+
                         <button class="btn-small waves-light" onclick="acceptTaskClicked({{incoming_task.id}})">
                             Accept
                         </button>

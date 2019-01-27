@@ -77,8 +77,8 @@ let $http = (function() {
 
 })();
 
-
-const WEB_SOCKET_BASE_URL = 'ws://' + window.location.host +'/ws';
+let protocol = location.protocol == 'https:' ? 'wss://' : 'ws://';
+const WEB_SOCKET_BASE_URL = protocol + window.location.host +'/ws';
 
 let $socket = (function() {
 

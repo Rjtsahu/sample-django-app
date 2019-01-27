@@ -71,5 +71,12 @@ $socket.init(wsUrl).then((event) => {
 });
 
 $socket.onMessage = function (e) {
-	console.log('inside onMessage client', e)
+	console.log('inside onMessage client', e);
+	try{
+	    let data = JSON.parse(e);
+	    if(data.event === 'new-task-request'){
+	       populateIncomingTask();
+	    }
+	}catch(e){
+	}
 }
