@@ -7,6 +7,7 @@ from food_ordering.constants import TaskStateConstant
 from django.dispatch import receiver
 from food_ordering.signals import ws_connected, ws_disconnected, ws_message
 from food_ordering.consumers import WsConsumer
+from food_ordering.queues import RedisQueue
 import json
 
 
@@ -29,10 +30,11 @@ class TaskService(object):
         task_trans_obj.task = task_obj
         task_trans_obj.updated_by = self.request.user
         task_trans_obj.save()
+        return task_obj.id
 
     def save_task(self):
         """
-        save a task to db
+        save a task to db and redis queue with sending proper notifications.
         :param form_data: input POST data from HTTP request
         :return: true or false based on success status
         """
@@ -41,12 +43,21 @@ class TaskService(object):
         form_data = self.request.POST
 
         data = {'title': form_data.get('title', ''), 'description': form_data.get('detail', ''),
-                'priority': form_data.get('priority', '')}
+                'priority': form_data.get('priority', '1')}
 
         if data['title'] == '':
             return False
 
-        self.__save__(data)
+        task_id = self.__save__(data)
+
+        # push this item into redis queue
+        redis_queue = RedisQueue()
+
+        NotificationService.notify_new_task_available(task_id)
+
+        task_obj = Task.objects.get(pk=task_id)
+        redis_queue.add_item(RedisQueue.to_json_str(task_obj), task_obj.priority)
+
         return True
 
     def __update_task_state__(self, task_id, task_state):
@@ -162,3 +173,19 @@ class NotificationService(object):
         }
 
         WsConsumer.group_send(json.dumps(message), WsConsumer.manager_group)
+
+    @staticmethod
+    def notify_new_task_available(task_id):
+        """
+        To be notified only if existing queue was empty.
+        This notification will be sent to all agents
+        :return:
+        """
+        redis_queue = RedisQueue()
+        if redis_queue.get_current_item() is None:
+            message = {
+                'event': 'new-task-request',
+                'data': 'A new task has been added by manager',
+                'taskId': task_id
+            }
+            WsConsumer.group_send(json.dumps(message), WsConsumer.agent_group)

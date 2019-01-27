@@ -17,6 +17,18 @@ function populateTaskList() {
 	});
 }
 
+function populateIncomingTask(){
+    let el = document.getElementById('agent-incoming-task');
+    $http.get('/task/latest').then(result=>{
+    		el.innerHTML = result;
+    }).catch(err=>{
+
+    	console.log('error in fetching incoming task', err);
+		M.toast({
+			html: 'failed to fetch task incoming task.'
+		});
+    });
+}
 function completeTaskClicked(taskId) {
 	performTaskAction(taskId, 'completed');
 }
@@ -43,6 +55,7 @@ function performTaskAction(taskId, action) {
 
 document.addEventListener('DOMContentLoaded', function () {
 	populateTaskList();
+	populateIncomingTask();
 });
 
 // code for websocket for realtime communication

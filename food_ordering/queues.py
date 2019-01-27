@@ -1,4 +1,5 @@
 import redis
+import json
 from food_ordering.utils import get_env_variable
 
 """
@@ -54,6 +55,7 @@ class RedisQueue(object):
                 continue
             else:
                 popped_item = self.redis_client.rpop(self.get_priority_queue_name(_priority))
+                self.redis_client.set(RedisQueue.current_item, popped_item)
                 break
 
         return popped_item
@@ -78,3 +80,13 @@ class RedisQueue(object):
     @staticmethod
     def get_priority_queue_name(priority=1):
         return RedisQueue.queue_prefix + str(priority)
+
+    @staticmethod
+    def to_json_str(task_model_obj):
+        task_obj = {'title': task_model_obj.title, 'id': task_model_obj.id, 'detail': task_model_obj.description}
+        return json.dumps(task_obj)
+
+    @staticmethod
+    def to_py_dict(task_str):
+        if task_str is not None:
+            return json.loads(task_str.decode('UTF-8'))
