@@ -35,7 +35,6 @@ class TaskService(object):
     def save_task(self):
         """
         save a task to db and redis queue with sending proper notifications.
-        :param form_data: input POST data from HTTP request
         :return: true or false based on success status
         """
         if self.request is None or self.request.POST is None:
@@ -53,9 +52,9 @@ class TaskService(object):
         # push this item into redis queue
         redis_queue = RedisQueue()
 
-        NotificationService.notify_new_task_available(task_id)
-
         task_obj = Task.objects.get(pk=task_id)
+
+        NotificationService.notify_new_task_available(task_obj)
         redis_queue.add_item(RedisQueue.to_json_str(task_obj), task_obj.priority)
 
         return True
@@ -149,6 +148,7 @@ class NotificationService(object):
 
     def __init__(self, req):
         self.request = req
+        self.redis_queue = RedisQueue()
 
     def notify_task_completed(self, task_id):
         self._notify_task_state_changed(task_id, 'completed')
@@ -158,6 +158,19 @@ class NotificationService(object):
 
     def notify_task_accepted(self, task_id):
         self._notify_task_state_changed(task_id, 'accepted')
+
+        # notify agents about next high priority task
+        # Its better send notification data from ws only,
+        # this will prevent multiple redis call if perform
+        # api refresh on this notification
+
+        top_task = self.get_task_to_display()
+        if top_task is not None:
+            message = {
+                'event': 'new-task-request',
+                'data': top_task,
+            }
+            WsConsumer.group_send(json.dumps(message), WsConsumer.agent_group)
 
     def notify_task_declined(self, task_id):
         self._notify_task_state_changed(task_id, 'declined')
@@ -175,17 +188,39 @@ class NotificationService(object):
         WsConsumer.group_send(json.dumps(message), WsConsumer.manager_group)
 
     @staticmethod
-    def notify_new_task_available(task_id):
+    def notify_new_task_available(task_obj):
         """
         To be notified only if existing queue was empty.
         This notification will be sent to all agents
         :return:
         """
         redis_queue = RedisQueue()
-        if redis_queue.get_current_item() is None:
+        if redis_queue.get_top_priority_item() is None:
             message = {
                 'event': 'new-task-request',
-                'data': 'A new task has been added by manager',
-                'taskId': task_id
+                'data': RedisQueue.to_py_dict(RedisQueue.to_json_str(task_obj)),
             }
             WsConsumer.group_send(json.dumps(message), WsConsumer.agent_group)
+
+    def get_task_to_display(self):
+        """
+        This method will get top priority task,it will keep popping
+        tasks if its state has been changes to cancel.
+        :return: task with highest priority
+        """
+        while True:
+            top_task = RedisQueue.to_py_dict(self.redis_queue.get_top_priority_item())
+            if top_task is None:
+                break
+
+            task_obj = Task.objects.get(pk=top_task['id'])
+
+            if task_obj.current_task_state == TaskStateConstant.NEW:
+                # this is a valid task
+                break
+            else:
+                # pop this task as its already cancelled
+                if self.redis_queue.get_top_priority_item(RedisQueue.to_json_str(top_task)) is None:
+                    # this is uncommon scenario, can happen when other thread win before this.
+                    break
+        return top_task
