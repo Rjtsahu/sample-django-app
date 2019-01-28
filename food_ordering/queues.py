@@ -1,5 +1,6 @@
-import redis
 import json
+import redis
+import threading
 from food_ordering.utils import get_env_variable
 
 """
@@ -18,6 +19,7 @@ class RedisQueue(object):
     queue_prefix = 'task_'
     priorities = [1, 2, 3]  # 1 denoting high and 3 low
     current_item = 'current_task'
+    _lock = threading.Lock()
 
     def __init__(self, uri=None):
         self.connection_property = self.get_connection_detail_from_redis_uri(
@@ -28,38 +30,37 @@ class RedisQueue(object):
             port=self.connection_property['port'],
             password=self.connection_property['password'] if 'password' in self.connection_property else None)
 
-    def add_item(self, item, priority=1):
+    def add_item(self, item, priority=priorities[0]):
         if priority not in RedisQueue.priorities:
             raise ValueError('Invalid value for priority')
         self.redis_client.lpush(self.get_priority_queue_name(priority), item)
-        if self.redis_client.get(RedisQueue.current_item) is None:
-            self.redis_client.set(RedisQueue.current_item, item)
 
-    def get_current_item(self):
-        item = self.redis_client.get(RedisQueue.current_item)
-        return item
-
-    def pop_priority_item(self, current_item):
+    def get_top_priority_item(self, pop_only_when_item=None):
         """
-        This will pop highest priority item and keeps it saved in current_item (redis).
-        :current_item: Popping is valid if only current_item matches with current_item value in redis.
+        This method will gets the item at top priority in redis queues,
+        This method will re-push last popped item to queue head if :param pop_only_when_item matched popped item.
+        :param pop_only_when_item : item (string representation) which is assumed to be equal to popped data.
         :return: popped_item
         """
         popped_item = None
-        redis_current_item = self.get_current_item()
-
-        if redis_current_item is not None:
-            redis_current_item = redis_current_item.decode('UTF-8')
-
-        if current_item != redis_current_item:
-            return popped_item
 
         for _priority in sorted(RedisQueue.priorities):
-            if self.redis_client.llen(self.get_priority_queue_name(_priority)) == 0:
+            queue_name = self.get_priority_queue_name(_priority)
+            if self.redis_client.llen(queue_name) == 0:
                 continue
             else:
-                popped_item = self.redis_client.rpop(self.get_priority_queue_name(_priority))
-                self.redis_client.set(RedisQueue.current_item, popped_item)
+                RedisQueue._lock.acquire()
+                popped_item = self.redis_client.rpop(queue_name)
+
+                if pop_only_when_item is None or popped_item.decode('UTF-8') != pop_only_when_item:
+                    # push back item at head of queue
+                    self.redis_client.rpush(queue_name, popped_item)
+                else:
+                    # don't push back again
+                    pass
+
+                RedisQueue._lock.release()
+
                 break
 
         return popped_item

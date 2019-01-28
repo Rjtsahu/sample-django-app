@@ -93,7 +93,7 @@ def task_agent_view(req, task_id):
         if action == 'accepted':
 
             task_obj = Task.objects.get(pk=task_id)
-            if redis_queue.pop_priority_item(RedisQueue.to_json_str(task_obj)) is not None:
+            if redis_queue.get_top_priority_item(RedisQueue.to_json_str(task_obj)):
                 task_service.accept_task(task_id)
                 notification_service.notify_task_accepted(task_id)
 
@@ -116,9 +116,9 @@ def task_agent_view(req, task_id):
 
 @login_required(login_url=LOGIN_URL)
 def latest_agent_task_view(req):
+    notification_service = NotificationService(req)
     if req.user.get_user_type() == 'DeliveryAgent':
-        redis_queue = RedisQueue()
-        current_task = RedisQueue.to_py_dict(redis_queue.get_current_item())
+        current_task = notification_service.get_task_to_display()
         return render(req, 'agent/incoming-task.html', {'incoming_task': current_task})
     return HttpResponse(status=403)
 
