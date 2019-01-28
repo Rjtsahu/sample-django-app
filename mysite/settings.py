@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 from food_ordering.utils import get_env_variable
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,17 +75,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'df5t3lfpd3jq7i',
-        'USER': 'hesogksxgdjlai',
-        'PASSWORD': '61a42e84c11a48d6ae34f34d6754ee708ceae5917e1b45c624981a5cdc3ffe4d',
-        'HOST': 'ec2-23-21-171-25.compute-1.amazonaws.com',
-        'PORT': '5432',
-    }
-}
+DATABASES = {'default': dj_database_url.parse(get_env_variable('DATABASE_URL'))}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -147,4 +138,5 @@ CHANNEL_LAYERS = {
 
 # Configure Django App for Heroku.
 import django_heroku
+
 django_heroku.settings(locals())
