@@ -45,6 +45,9 @@ function performTaskAction(taskId, action) {
 
 	$http.put('/task/' + taskId + '?action=' + action).then(result => {
 		populateTaskList();
+		if(action === 'accepted'){
+		    populateIncomingTask();
+		}
 	}).catch(err => {
 		console.log('error in fetching agent list');
 		M.toast({

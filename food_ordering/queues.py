@@ -31,9 +31,10 @@ class RedisQueue(object):
     def add_item(self, item, priority=1):
         if priority not in RedisQueue.priorities:
             raise ValueError('Invalid value for priority')
-        self.redis_client.lpush(self.get_priority_queue_name(priority), item)
         if self.redis_client.get(RedisQueue.current_item) is None:
             self.redis_client.set(RedisQueue.current_item, item)
+        else:
+            self.redis_client.lpush(self.get_priority_queue_name(priority), item)
 
     def get_current_item(self):
         item = self.redis_client.get(RedisQueue.current_item)
@@ -45,14 +46,15 @@ class RedisQueue(object):
         :current_item: Popping is valid if only current_item matches with current_item value in redis.
         :return: popped_item
         """
-        popped_item = None
+        popped = False
+        all_queue_empty = True
         redis_current_item = self.get_current_item()
 
         if redis_current_item is not None:
             redis_current_item = redis_current_item.decode('UTF-8')
 
         if current_item != redis_current_item:
-            return popped_item
+            return popped
 
         for _priority in sorted(RedisQueue.priorities):
             if self.redis_client.llen(self.get_priority_queue_name(_priority)) == 0:
@@ -60,9 +62,15 @@ class RedisQueue(object):
             else:
                 popped_item = self.redis_client.rpop(self.get_priority_queue_name(_priority))
                 self.redis_client.set(RedisQueue.current_item, popped_item)
+                popped = True
+                all_queue_empty = False
                 break
+        if all_queue_empty:
+            # if queues are empty then clear current item also
+            self.redis_client.delete(RedisQueue.current_item)
+            popped = True
 
-        return popped_item
+        return popped
 
     @staticmethod
     def get_connection_detail_from_redis_uri(uri):

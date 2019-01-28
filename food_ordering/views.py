@@ -93,7 +93,7 @@ def task_agent_view(req, task_id):
         if action == 'accepted':
 
             task_obj = Task.objects.get(pk=task_id)
-            if redis_queue.pop_priority_item(RedisQueue.to_json_str(task_obj)) is not None:
+            if redis_queue.pop_priority_item(RedisQueue.to_json_str(task_obj)):
                 task_service.accept_task(task_id)
                 notification_service.notify_task_accepted(task_id)
 
