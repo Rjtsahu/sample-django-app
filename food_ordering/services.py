@@ -94,7 +94,7 @@ class TaskService(object):
         assigned_task_obj = AssignedTask()
         assigned_task_obj.task = task_obj
         assigned_task_obj.assign_to = self.request.user
-        assigned_task_obj.assign_to = datetime.utcnow()
+        assigned_task_obj.assign_at = datetime.utcnow()
 
     def complete_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.COMPLETED)
