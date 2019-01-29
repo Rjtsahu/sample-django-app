@@ -125,7 +125,7 @@ SESSION_COOKIE_HTTPONLY = False
 
 # config for redis channel for websocket
 
-ASGI_APPLICATION = 'mysite.routing.application'
+# ASGI_APPLICATION = 'mysite.routing.application'
 
 CHANNEL_LAYERS = {
     'default': {
