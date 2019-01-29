@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from food_ordering.signals import ws_message, ws_connected, ws_disconnected
 from channels.consumer import get_channel_layer
-
+from django.db import connections
 
 class WsConsumer(WebsocketConsumer):
     broadcast_group = 'broadcast'
@@ -33,6 +33,7 @@ class WsConsumer(WebsocketConsumer):
 
         WsConsumer.group_send('New client connected clientId:' + self.client_id, self.room_name)
         ws_connected.send(sender=__class__, client_id=self.client_id, group_name=self.room_name)
+        connections.close_all()
 
     def disconnect(self, code):
         print('disconnected client : ', self.client_id)
@@ -47,6 +48,7 @@ class WsConsumer(WebsocketConsumer):
             self.channel_name)
 
         ws_disconnected.send(sender=__class__, client_id=self.client_id, group_name=self.room_name)
+        connections.close_all()
 
     def receive(self, text_data=None, bytes_data=None):
         print('data received ', text_data)
@@ -70,6 +72,7 @@ class WsConsumer(WebsocketConsumer):
             )
         except Exception as e:
             print('error while group sending : ', e)
+        connections.close_all()
 
     def channel_send_handler(self, event):
         message = event['message']
