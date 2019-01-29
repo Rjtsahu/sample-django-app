@@ -77,8 +77,15 @@ $socket.onMessage = function (e) {
 	console.log('inside onMessage client', e);
 	try{
 	    let data = JSON.parse(e);
+	    console.log('data ',data)
 	    if(data.event === 'new-task-request'){
-	       populateIncomingTask();
+	       let titleEl = document.getElementById('requested-task-title');
+	       let detailEl = document.getElementById('requested-task-detail');
+	       let buttonEl = document.getElementById('requested-task-button');
+
+	       titleEl.innerText = data.data.title;
+	       detailEl.innerText = data.data.detail;
+	       buttonEl.onclick = acceptTaskClicked(data.data.id);
 	    }
 	}catch(e){
 	}
