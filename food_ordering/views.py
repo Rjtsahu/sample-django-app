@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from food_ordering.services import TaskService, AssignedTaskService, NotificationService
 from food_ordering.models import Task, CustomUser, TaskTransaction
 from food_ordering.queues import RedisQueue
+from django.db import connections
 
 LOGIN_URL = '/accounts/login'
 
@@ -25,21 +26,26 @@ def home(req):
 
 def manager_home_view(req):
     context = {'user': req.user}
+    connections.close_all()
     return render(req, 'manager/home.html', context)
 
 
 def delivery_agent_home_view(req):
     context = {'user': req.user}
-    # TODO: add logic to send list of tasks
+    connections.close_all()
     return render(req, 'agent/home.html', context)
 
 
 @login_required(login_url=LOGIN_URL)
 def task(req, task_id=None):
     if req.user.get_user_type() == 'Manager':
-        return task_manager_view(req, task_id)
+        view = task_manager_view(req, task_id)
+        connections.close_all()
+        return view
     elif req.user.get_user_type() == 'DeliveryAgent':
-        return task_agent_view(req, task_id)
+        view = task_agent_view(req, task_id)
+        connections.close_all()
+        return view
     else:
         return redirect('/accounts/login')
 
@@ -119,10 +125,12 @@ def latest_agent_task_view(req):
     notification_service = NotificationService(req)
     if req.user.get_user_type() == 'DeliveryAgent':
         current_task = notification_service.get_task_to_display()
+        connections.close_all()
         return render(req, 'agent/incoming-task.html', {'incoming_task': current_task})
     return HttpResponse(status=403)
 
 
 def do_logout(req):
     logout(req)
+    connections.close_all()
     return redirect('accounts/login')
