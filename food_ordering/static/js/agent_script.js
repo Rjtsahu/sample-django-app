@@ -79,13 +79,17 @@ $socket.onMessage = function (e) {
 	    let data = JSON.parse(e);
 	    console.log('data ',data)
 	    if(data.event === 'new-task-request'){
+	       let headingEl = document.getElementById('requested-task-heading');
 	       let titleEl = document.getElementById('requested-task-title');
 	       let detailEl = document.getElementById('requested-task-detail');
 	       let buttonEl = document.getElementById('requested-task-button');
+	       let divEl = document.getElementById('requested-task-div');
 
+           headingEl.innerText = 'Incoming request';
 	       titleEl.innerText = data.data.title;
 	       detailEl.innerText = data.data.detail;
-	       buttonEl.onclick = acceptTaskClicked(data.data.id);
+	       buttonEl.setAttribute('onclick',"acceptTaskClicked("+data.data.id+")");
+	       divEl.setAttribute('style','display:block;');
 	    }
 	}catch(e){
 	}
