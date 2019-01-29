@@ -220,7 +220,7 @@ class NotificationService(object):
                 break
             else:
                 # pop this task as its already cancelled
-                if self.redis_queue.get_top_priority_item(RedisQueue.to_json_str(top_task)) is None:
+                if self.redis_queue.get_top_priority_item(RedisQueue.to_json_str(top_task, False)) is None:
                     # this is uncommon scenario, can happen when other thread win before this.
                     break
         return top_task

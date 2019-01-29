@@ -1,7 +1,7 @@
 import json
 import redis
 import threading
-from food_ordering.utils import get_env_variable
+from food_ordering.utils import get_env_variable, to_utf
 
 """
 This file will handle producer consumer
@@ -52,7 +52,7 @@ class RedisQueue(object):
                 RedisQueue._lock.acquire()
                 popped_item = self.redis_client.rpop(queue_name)
 
-                if pop_only_when_item is None or popped_item.decode('UTF-8') != pop_only_when_item:
+                if pop_only_when_item is None or to_utf(popped_item) != pop_only_when_item:
                     # push back item at head of queue
                     self.redis_client.rpush(queue_name, popped_item)
                 else:
@@ -87,11 +87,14 @@ class RedisQueue(object):
         return RedisQueue.queue_prefix + str(priority)
 
     @staticmethod
-    def to_json_str(task_model_obj):
+    def to_json_str(task_model_obj, is_django_model=True):
+        if not is_django_model:
+            # in case of python object
+            return json.dumps(task_model_obj)
         task_obj = {'title': task_model_obj.title, 'id': task_model_obj.id, 'detail': task_model_obj.description}
         return json.dumps(task_obj)
 
     @staticmethod
     def to_py_dict(task_str):
         if task_str is not None:
-            return json.loads(task_str.decode('UTF-8'))
+            return json.loads(to_utf(task_str))

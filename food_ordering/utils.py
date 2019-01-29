@@ -37,3 +37,10 @@ def get_env_variable(var_name):
         raise ImproperlyConfigured(error_msg)
 
 
+def to_utf(string):
+    if isinstance(string, str):
+        return string
+    elif isinstance(string, bytes):
+        return string.decode('UTF-8')
+    else:
+        raise ValueError('Only string or byte encoded values are allowed.')
