@@ -64,9 +64,9 @@ function disableAcceptButtonWhenAcceptedCountExceedsThree() {
 		let buttonEl = document.getElementById('requested-task-button');
 
 		if (itemCount >= 3) {
-			buttonEl.setAttribute('class', 'btn-small waves-light');
+		        buttonEl.setAttribute('class', 'btn-small disabled');
 		} else {
-			buttonEl.setAttribute('class', 'btn-small disabled');
+			buttonEl.setAttribute('class', 'btn-small waves-light');
 		}
 	} catch {
 		console.log('some elements not find, ignoring disable button');
