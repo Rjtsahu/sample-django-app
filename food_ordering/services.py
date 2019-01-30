@@ -54,8 +54,8 @@ class TaskService(object):
 
         task_obj = Task.objects.get(pk=task_id)
 
-        NotificationService.notify_new_task_available(task_obj)
         redis_queue.add_item(RedisQueue.to_json_str(task_obj), task_obj.priority)
+        NotificationService.notify_new_task_available(task_obj)
 
         return True
 
@@ -89,6 +89,13 @@ class TaskService(object):
 
     def accept_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.ACCEPTED)
+        # add a record in AssignedTask table
+        task_obj = Task.objects.get(pk=task_id)
+        assigned_task_obj = AssignedTask()
+        assigned_task_obj.task = task_obj
+        assigned_task_obj.assign_to = self.request.user
+        assigned_task_obj.assign_at = datetime.utcnow()
+        assigned_task_obj.save()
 
     def complete_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.COMPLETED)
@@ -190,12 +197,16 @@ class NotificationService(object):
     @staticmethod
     def notify_new_task_available(task_obj):
         """
-        To be notified only if existing queue was empty.
-        This notification will be sent to all agents
+        To be notified only if current item id is equal to item just inserted. OR
+        This notification will also be send if new task priority is higher than any of previous task (get_top_priority_item)
+        but this condition would be already satisfied by get_top_priority_item()
+        This notification will be sent to all agents.
         :return:
         """
         redis_queue = RedisQueue()
-        if redis_queue.get_top_priority_item() is None:
+        top_task = RedisQueue.to_py_dict(redis_queue.get_top_priority_item())
+
+        if top_task is None or top_task['id'] == task_obj.id:
             message = {
                 'event': 'new-task-request',
                 'data': RedisQueue.to_py_dict(RedisQueue.to_json_str(task_obj)),
