@@ -1,31 +1,33 @@
- <div class="card-panel white" style="min-height:300px;">
-            <div class="top-title"> view created tasks.</div>
-            <div class="task-list">
-                <table class="highlight">
-                    <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Priority</th>
-                        <th>Current State</th>
-                        <th>Cancel</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for task in tasks %}
-                    <tr>
-                        <td><a href="/task/{{task.id}}" style="color:black"> {{task.title}} </a></td>
-                        <td> {{task.get_priority_type}}</td>
-                        <td> {{task.get_current_task_state_type}}</td>
-                        <td>
-                            {% if task.get_current_task_state_type == 'CANCELLED' or task.get_current_task_state_type == 'ACCEPTED' %}
-                            <button class="btn-small disabled"> Cancel</button>
-                            {% else %}
-                            <button class="btn-small waves-light" onclick="cancelTask({{task.id}})"> Cancel</button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="card-panel white" style="min-height:300px;">
+    <div class="top-title"> view created tasks.</div>
+    <div class="task-list">
+        <table class="highlight">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Priority</th>
+                <th>Current State</th>
+                <th>Cancel</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td><a href="/task/{{task.id}}" style="color:black"> {{task.title}} </a></td>
+                <td> {{task.get_priority_type}}</td>
+                <td> {{task.get_current_task_state_type}}</td>
+                <td>
+                    {% if task.get_current_task_state_type == 'NEW' %}
+                    <button class="btn-small waves-light" onclick="cancelTask({{task.id}})"> Cancel</button>
+
+                    {% else %}
+                    <button class="btn-small disabled"> Cancel</button>
+
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
