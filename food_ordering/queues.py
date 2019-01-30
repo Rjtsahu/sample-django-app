@@ -91,7 +91,8 @@ class RedisQueue(object):
         if not is_django_model:
             # in case of python object
             return json.dumps(task_model_obj)
-        task_obj = {'title': task_model_obj.title, 'id': task_model_obj.id, 'detail': task_model_obj.description}
+        task_obj = {'title': task_model_obj.title, 'id': task_model_obj.id,
+                    'detail': task_model_obj.description, 'priority': task_model_obj.priority}
         return json.dumps(task_obj)
 
     @staticmethod
