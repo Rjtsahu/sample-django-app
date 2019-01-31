@@ -65,7 +65,7 @@ function disableAcceptButtonWhenAcceptedCountExceedsThree() {
 
 		if (itemCount >= 3) {
 			buttonEl.setAttribute('class', 'btn-small disabled');
-		} else
+		} else{
 			buttonEl.setAttribute('class', 'btn-small waves-light');
 		}
 	} catch {
