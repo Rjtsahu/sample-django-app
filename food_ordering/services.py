@@ -48,14 +48,7 @@ class TaskService(object):
             return False
 
         task_id = self.__save__(data)
-
-        # push this item into redis queue
-        redis_queue = RedisQueue()
-
-        task_obj = Task.objects.get(pk=task_id)
-
-        redis_queue.add_item(RedisQueue.to_json_str(task_obj), task_obj.priority)
-        NotificationService.notify_new_task_available(task_obj)
+        self.add_task_to_queue_and_notify(task_id)
 
         return True
 
@@ -104,6 +97,20 @@ class TaskService(object):
     def decline_task(self, task_id):
         self.__update_task_state__(task_id, TaskStateConstant.DECLINED)
         self._update_task_assigned_state(task_id, is_declined=True)
+
+        # again mark this task as new and push it to priority queue
+        self.__update_task_state__(task_id, TaskStateConstant.NEW)
+        self.add_task_to_queue_and_notify(task_id)
+
+    @staticmethod
+    def add_task_to_queue_and_notify(task_id):
+        # push this item into redis queue
+        redis_queue = RedisQueue()
+
+        task_obj = Task.objects.get(pk=task_id)
+
+        redis_queue.add_item(RedisQueue.to_json_str(task_obj), task_obj.priority)
+        NotificationService.notify_new_task_available(task_obj)
 
 
 class AssignedTaskService:
