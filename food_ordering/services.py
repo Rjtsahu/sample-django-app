@@ -233,7 +233,7 @@ class NotificationService(object):
 
             task_obj = Task.objects.get(pk=top_task['id'])
 
-            if task_obj.current_task_state == TaskStateConstant.NEW:
+            if task_obj.current_task_state in [TaskStateConstant.NEW, TaskStateConstant.DECLINED]:
                 # this is a valid task
                 break
             else:
