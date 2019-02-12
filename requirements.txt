@@ -1,4 +1,4 @@
-Django == 2.1.5
+Django ~= 2.1.6
 pika == 0.13.0
 channels == 2.1.6
 channels_redis == 2.3.3
